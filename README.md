@@ -27,7 +27,8 @@ the merging if neccessary.
 
 Contact
 -------
-This library was published by Sebastian Jänicke, I am working for ADDIPOS GmbH as developer.
+This library was published by Sebastian Jänicke. I am working for ADDIPOS GmbH as developer.
+I have been given permission to disclose this source code publicly.
 
 You can contact me as user jaenicke at http://www.delphipraxis.net/ or under:
 jaenicke.github@outlook.com
