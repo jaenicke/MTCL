@@ -37,7 +37,7 @@ end;
 
 procedure TMtclButton.Init;
 begin
-
+  inherited;
 end;
 
 procedure TMtclButton.SetOnClick(const Value: TNotifyEvent);

@@ -79,6 +79,9 @@ begin
     FExampleThreadDialog.Get<TMtclButton>(IDOK).OnClick := DialogButtonClick;
     for i := 0 to 10 do
     begin
+      ExampleControl.Left := ExampleControl.Left + 10;
+      Sleep(300);
+      ExampleControl.Left := ExampleControl.Left - 10;
       for j := 0 to 10 do
       begin
         ExampleControl.Text := ExampleControl.Text + FExampleText;

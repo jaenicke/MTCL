@@ -56,6 +56,7 @@ end;
 
 procedure TMtclEdit.Init;
 begin
+  inherited;
 end;
 
 procedure TMtclEdit.SetText(const Value: WideString);
