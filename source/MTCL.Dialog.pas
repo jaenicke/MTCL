@@ -87,7 +87,7 @@ begin
     begin
       FControls.Add(AddedControl);
       FControlsByID.Add(ControlID, AddedControl);
-      FControlsByID.Add(AHandle, AddedControl);
+      FControlsByHandle.Add(AHandle, AddedControl);
     end;
   end;
 end;
