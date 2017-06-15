@@ -30,6 +30,10 @@ type
     function GetLeft: Integer;
     function GetTop: Integer;
     function GetWidth: Integer;
+    function GetText: WideString;
+    procedure SetText(const Value: WideString);
+    function GetTextLength: Integer;
+    function GetTextBuffer(Buffer: PChar; BufSize: Integer): Integer;
   protected
     procedure Init; virtual;
   public
@@ -45,6 +49,7 @@ type
     property Top: Integer read GetTop write SetTop;
     property Width: Integer read GetWidth write SetWidth;
     property Height: Integer read GetHeight write SetHeight;
+    property Text: WideString read GetText write SetText;
   end;
 
 implementation
@@ -129,6 +134,35 @@ end;
 procedure TMtclBaseControl.SetWidth(const Value: Integer);
 begin
   SetBounds(FLeft, FTop, Value, FHeight);
+end;
+
+function TMtclBaseControl.GetText: WideString;
+var
+  Len: Integer;
+begin
+  Len := GetTextLength;
+  SetString(Result, PChar(nil), Len);
+  if Len <> 0 then
+  begin
+    Len := Len - GetTextBuffer(PChar(Result), Len + 1);
+    if Len > 0 then
+      SetLength(Result, Length(Result) - Len);
+  end;
+end;
+
+function TMtclBaseControl.GetTextBuffer(Buffer: PChar; BufSize: Integer): Integer;
+begin
+  Result := SendMessage(Handle, WM_GETTEXT, BufSize, LPARAM(Buffer));
+end;
+
+function TMtclBaseControl.GetTextLength: Integer;
+begin
+  Result := SendMessage(Handle, WM_GETTEXTLENGTH, 0, 0);
+end;
+
+procedure TMtclBaseControl.SetText(const Value: WideString);
+begin
+  SendMessage(Handle, WM_SETTEXT, 0, NativeInt(PChar(Value)));
 end;
 
 end.

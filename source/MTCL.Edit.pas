@@ -15,53 +15,17 @@ uses
 
 type
   TMtclEdit = class(TMtclBaseControl)
-  private
-    function GetText: WideString;
-    procedure SetText(const Value: WideString);
-    function GetTextLength: Integer;
-    function GetTextBuffer(Buffer: PChar; BufSize: Integer): Integer;
   protected
     procedure Init; override;
-  public
-    property Text: WideString read GetText write SetText;
   end;
 
 implementation
 
 { TMtclMemo }
 
-function TMtclEdit.GetText: WideString;
-var
-  Len: Integer;
-begin
-  Len := GetTextLength;
-  SetString(Result, PChar(nil), Len);
-  if Len <> 0 then
-  begin
-    Len := Len - GetTextBuffer(PChar(Result), Len + 1);
-    if Len > 0 then
-      SetLength(Result, Length(Result) - Len);
-  end;
-end;
-
-function TMtclEdit.GetTextBuffer(Buffer: PChar; BufSize: Integer): Integer;
-begin
-  Result := SendMessage(Handle, WM_GETTEXT, BufSize, LPARAM(Buffer));
-end;
-
-function TMtclEdit.GetTextLength: Integer;
-begin
-  Result := SendMessage(Handle, WM_GETTEXTLENGTH, 0, 0);
-end;
-
 procedure TMtclEdit.Init;
 begin
   inherited;
-end;
-
-procedure TMtclEdit.SetText(const Value: WideString);
-begin
-  SetDlgItemText(Dialog, DialogItem, PChar(Value));
 end;
 
 end.
