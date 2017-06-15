@@ -22,8 +22,8 @@ type
     function GetLines: TStringList;
     procedure TextChanged(Sender: TObject);
   public
-    constructor Create(const ADialog, AControl: HWND;
-      const ADialogItem: Integer); override;
+    constructor Create(const ADialog, AControl: HWND; const ADialogItem: Integer); override;
+    constructor Create(const ADialog: HWND; const ADialogItem: Integer); override;
     procedure BeginUpdate;
     procedure EndUpdate;
     property Lines: TStringList read GetLines;
@@ -38,12 +38,20 @@ begin
   inc(FUpdate);
 end;
 
-constructor TMtclMemo.Create(const ADialog, AControl: HWND;
-  const ADialogItem: Integer);
+constructor TMtclMemo.Create(const ADialog, AControl: HWND; const ADialogItem: Integer);
 begin
   inherited;
   FLines := TStringList.Create;
   Lines.OnChange := TextChanged;
+end;
+
+constructor TMtclMemo.Create(const ADialog: HWND; const ADialogItem: Integer);
+var
+  EditHandle: HWND;
+begin
+  EditHandle := CreateWindowEx(0, 'EDIT', nil, WS_CHILD or WS_VISIBLE or WS_VSCROLL or ES_LEFT or ES_MULTILINE or ES_AUTOVSCROLL,
+    0, 0, 0, 0, ADialog, ADialogItem, GetWindowLong(ADialog, GWL_HINSTANCE), nil);
+  inherited Create(ADialog, EditHandle, ADialogItem);
 end;
 
 procedure TMtclMemo.EndUpdate;

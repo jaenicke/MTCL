@@ -23,12 +23,22 @@ type
     procedure Init; override;
     procedure WMCommand(var Message: TWMCommand); message WM_COMMAND;
   public
+    constructor Create(const ADialog: HWND; const ADialogItem: Integer); override;
     property OnClick: TNotifyEvent read GetOnClick write SetOnClick;
   end;
 
 implementation
 
 { TMtclButton }
+
+constructor TMtclButton.Create(const ADialog: HWND; const ADialogItem: Integer);
+var
+  ButtonHandle: HWND;
+begin
+  ButtonHandle := CreateWindow('BUTTON', nil, WS_OVERLAPPED or WS_TABSTOP or WS_MAXIMIZEBOX or WS_VISIBLE or WS_CHILD
+    or BS_PUSHBUTTON or BS_TEXT, 0, 0, 0, 0, ADialog, ADialogItem, HInstance, nil);
+  inherited Create(ADialog, ButtonHandle, ADialogItem);
+end;
 
 function TMtclButton.GetOnClick: TNotifyEvent;
 begin

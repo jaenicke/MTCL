@@ -28,8 +28,10 @@ type
       FControlsByID: TDictionary<Integer, TMtclBaseControl>;
       FControlsByHandle: TDictionary<HWND, TMtclBaseControl>;
       FState: Integer;
+      FLastControlID: Integer;
       procedure AddControl(const AHandle: HWND);
       procedure MtclDialogProc(var AMessage: TMessage);
+      function GetNewControlID: Integer;
     protected
       procedure Execute; override;
     public
@@ -38,6 +40,7 @@ type
       procedure Show;
       procedure Hide;
       function Get<T: TMtclBaseControl>(const AControlID: Integer): T;
+      function GetNew<T: TMtclBaseControl>: T;
       property Handle: HWND read FHandle write FHandle;
     end;
 
@@ -53,12 +56,12 @@ type
     procedure Close;
     property Handle: HWND read GetHandle write SetHandle;
     function Get<T: TMtclBaseControl>(const AControlID: Integer): T;
+    function GetNew<T: TMtclBaseControl>: T;
   end;
 
 implementation
 
-function EnumWindowsProc(AHandle: HWND; ADialog: TMtclDialog.TMtclDialogThread)
-  : Bool; stdcall;
+function EnumWindowsProc(AHandle: HWND; ADialog: TMtclDialog.TMtclDialogThread): Bool; stdcall;
 begin
   ADialog.AddControl(AHandle);
   Result := True;
@@ -88,6 +91,8 @@ begin
       FControls.Add(AddedControl);
       FControlsByID.Add(ControlID, AddedControl);
       FControlsByHandle.Add(AHandle, AddedControl);
+      if ControlID > FLastControlID then
+        FLastControlID := ControlID;
     end;
   end;
 end;
@@ -113,10 +118,8 @@ procedure TMtclDialog.TMtclDialogThread.Execute;
 var
   CurrentMessage: TMsg;
 begin
-  TThread.NameThreadForDebugging('TMtclDialog.TMtclDialogThread ' +
-    IntToStr(FResource));
-  FHandle := CreateDialogParam(hInstance, MAKEINTRESOURCE(FResource), 0,
-    MakeObjectInstance(MtclDialogProc), 0);
+  TThread.NameThreadForDebugging('TMtclDialog.TMtclDialogThread ' + IntToStr(FResource));
+  FHandle := CreateDialogParam(hInstance, MAKEINTRESOURCE(FResource), 0, MakeObjectInstance(MtclDialogProc), 0);
   ShowWindow(FHandle, SW_SHOWNORMAL);
   EnumChildWindows(FHandle, @EnumWindowsProc, Integer(Self));
   InvalidateRect(FHandle, nil, True);
@@ -124,8 +127,7 @@ begin
 {$BOOLEVAL OFF}
   while not Terminated do
   begin
-    if PeekMessage(CurrentMessage, 0, 0, 0, PM_REMOVE) and
-      not IsDialogMessage(FHandle, CurrentMessage) then
+    if PeekMessage(CurrentMessage, 0, 0, 0, PM_REMOVE) and not IsDialogMessage(FHandle, CurrentMessage) then
     begin
       TranslateMessage(CurrentMessage);
       DispatchMessage(CurrentMessage);
@@ -139,11 +141,30 @@ function TMtclDialog.TMtclDialogThread.Get<T>(const AControlID: Integer): T;
 var
   ResultControl: TMtclBaseControl;
 begin
-  if FControlsByID.TryGetValue(AControlID, ResultControl) and
-    (ResultControl is T) then
+  if FControlsByID.TryGetValue(AControlID, ResultControl) and (ResultControl is T) then
     Result := T(ResultControl)
   else
     Result := nil;
+end;
+
+function TMtclDialog.TMtclDialogThread.GetNew<T>: T;
+var
+  ResultControl: T;
+begin
+  TThread.Synchronize(Self, procedure
+    begin
+      ResultControl := T.Create(Self.Handle, Self.GetNewControlID);
+    end);
+  Result := ResultControl;
+  FControls.Add(Result);
+  FControlsByID.Add(Result.DialogItem, Result);
+  FControlsByHandle.Add(Result.Handle, Result);
+end;
+
+function TMtclDialog.TMtclDialogThread.GetNewControlID: Integer;
+begin
+  Inc(FLastControlID);
+  Result := FLastControlID;
 end;
 
 procedure TMtclDialog.TMtclDialogThread.Hide;
@@ -202,6 +223,11 @@ end;
 function TMtclDialog.GetHandle: HWND;
 begin
   Result := FDialogThread.Handle;
+end;
+
+function TMtclDialog.GetNew<T>: T;
+begin
+  Result := FDialogThread.GetNew<T>;
 end;
 
 procedure TMtclDialog.Hide;

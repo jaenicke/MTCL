@@ -10,6 +10,7 @@ unit MTCL.BaseControl;
 interface
 
 uses
+  System.Classes,
   Winapi.Windows, Winapi.Messages;
 
 type
@@ -17,6 +18,7 @@ type
   private
   var
     FDialog, FHandle: HWND;
+    FOriginalWndProc: Pointer;
     FDialogItem: Integer;
     FWidth: Integer;
     FTop: Integer;
@@ -36,8 +38,10 @@ type
     function GetTextBuffer(Buffer: PChar; BufSize: Integer): Integer;
   protected
     procedure Init; virtual;
+    procedure WndProc(var AMsg: TMessage); virtual;
   public
-    constructor Create(const ADialog, AControl: HWND; const ADialogItem: Integer); virtual;
+    constructor Create(const ADialog, AControl: HWND; const ADialogItem: Integer); overload; virtual;
+    constructor Create(const ADialog: HWND; const ADialogItem: Integer); overload; virtual;
 
     procedure SetBounds(const ALeft, ATop, AWidth, AHeight: Integer); virtual;
 
@@ -56,11 +60,19 @@ implementation
 
 { TMtclBaseControl }
 
-constructor TMtclBaseControl.Create(const ADialog, AControl: HWND;
-  const ADialogItem: Integer);
+constructor TMtclBaseControl.Create(const ADialog, AControl: HWND; const ADialogItem: Integer);
 begin
   FDialog := ADialog;
   FHandle := AControl;
+  FDialogItem := ADialogItem;
+  FOriginalWndProc := Pointer(GetWindowLong(FHandle, GWL_WNDPROC));
+  SetWindowLong(FHandle, GWL_WNDPROC, NativeInt(MakeObjectInstance(WndProc)));
+  Init;
+end;
+
+constructor TMtclBaseControl.Create(const ADialog: HWND; const ADialogItem: Integer);
+begin
+  FDialog := ADialog;
   FDialogItem := ADialogItem;
   Init;
 end;
@@ -134,6 +146,20 @@ end;
 procedure TMtclBaseControl.SetWidth(const Value: Integer);
 begin
   SetBounds(FLeft, FTop, Value, FHeight);
+end;
+
+procedure TMtclBaseControl.WndProc(var AMsg: TMessage);
+var
+  CurrentControl: TMtclBaseControl;
+begin
+  case AMsg.Msg of
+    WM_CLOSE:
+      DestroyWindow(FHandle);
+    WM_COMMAND:
+      Dispatch(AMsg);
+  else
+    AMsg.Result := CallWindowProc(FOriginalWndProc, FHandle, AMsg.Msg, AMsg.WParam, AMsg.LParam);
+  end;
 end;
 
 function TMtclBaseControl.GetText: WideString;

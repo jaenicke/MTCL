@@ -69,6 +69,7 @@ end;
 procedure TExampleThread.Execute;
 var
   ExampleControl: TMtclEdit;
+  ResButton, SecondButton: TMtclButton;
   i, j: Integer;
 begin
   TThread.NameThreadForDebugging('TExampleThread: ' + FExampleText);
@@ -76,11 +77,17 @@ begin
   try
     FExampleThreadDialog.Show;
     ExampleControl := FExampleThreadDialog.Get<TMtclEdit>(4001);
-    FExampleThreadDialog.Get<TMtclButton>(IDOK).OnClick := DialogButtonClick;
+    ResButton := FExampleThreadDialog.Get<TMtclButton>(IDOK);
+	  ResButton.OnClick := DialogButtonClick;
+    SecondButton := FExampleThreadDialog.GetNew<TMtclButton>;
+    SecondButton.SetBounds(ExampleControl.Left, 2 * ExampleControl.Top + ExampleControl.Height,
+      ResButton.Width, ResButton.Height);
+    SecondButton.Text := 'Dynamisch';
+    SecondButton.OnClick := DialogButtonClick;
     for i := 0 to 10 do
     begin
       ExampleControl.Left := ExampleControl.Left + 10;
-      Sleep(300);
+      Sleep(100);
       ExampleControl.Left := ExampleControl.Left - 10;
       for j := 0 to 10 do
       begin
