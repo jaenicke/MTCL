@@ -15,9 +15,9 @@ as well. Only changes and additions to this library have to be published.
 
 Todo
 ----
-I'd like to add:
-- dynamic creation of the controls at runtime as alternative to the usage of resource
-- at least positioning and a few other basic properties
+I'd like to add (partially done):
+- ~~dynamic creation of the controls at runtime as alternative to the usage of resource~~
+- ~~at least positioning and~~ a few other basic properties
 - after this a few new controls as a progressbar
 
 You would like to contribute?
