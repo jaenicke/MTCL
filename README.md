@@ -17,8 +17,9 @@ Todo
 ----
 I'd like to add (partially done):
 - ~~dynamic creation of the controls at runtime as alternative to the usage of resource~~
-- ~~at least positioning and~~ a few other basic properties
-- after this a few new controls as a progressbar
+- ~~at least positioning and~~ a few other basic properties like Font
+- after this a few new controls ~~as a progressbar~~
+- extended properties like pause state for the progressbar
 
 You would like to contribute?
 -----------------------------
