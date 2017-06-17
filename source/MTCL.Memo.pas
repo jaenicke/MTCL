@@ -49,6 +49,7 @@ constructor TMtclMemo.Create(const ADialog: HWND; const ADialogItem: Integer);
 var
   EditHandle: HWND;
 begin
+  FLines := TStringList.Create;
   EditHandle := CreateWindowEx(0, 'EDIT', nil, WS_CHILD or WS_VISIBLE or WS_VSCROLL or ES_LEFT or ES_MULTILINE or ES_AUTOVSCROLL,
     0, 0, 0, 0, ADialog, ADialogItem, GetWindowLong(ADialog, GWL_HINSTANCE), nil);
   inherited Create(ADialog, EditHandle, ADialogItem);
