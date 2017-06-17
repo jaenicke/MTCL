@@ -13,7 +13,7 @@ uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, System.Generics.Collections,
   Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
-  MTCL.Dialog, MTCL.Edit, MTCL.Button;
+  MTCL.Dialog, MTCL.Edit, MTCL.Button, MTCL.Progress;
 
 type
   TExampleThread = class(TThread)
@@ -70,7 +70,8 @@ procedure TExampleThread.Execute;
 var
   ExampleControl: TMtclEdit;
   ResButton, SecondButton: TMtclButton;
-  i, j: Integer;
+  ProgressBar: TMtclProgress;
+  i, j, ProgressLeft: Integer;
 begin
   TThread.NameThreadForDebugging('TExampleThread: ' + FExampleText);
   FExampleThreadDialog := TMtclDialog.Create(1901);
@@ -84,7 +85,12 @@ begin
       ResButton.Width, ResButton.Height);
     SecondButton.Text := 'Dynamisch';
     SecondButton.OnClick := DialogButtonClick;
-    for i := 0 to 10 do
+    ProgressBar := FExampleThreadDialog.GetNew<TMtclProgress>;
+    ProgressBar.Min := 0;
+    ProgressBar.Max := 15;
+    ProgressLeft := 2 * SecondButton.Left + SecondButton.Width;
+    ProgressBar.SetBounds(ProgressLeft, SecondButton.Top, ResButton.Left - ProgressLeft - SecondButton.Left, SecondButton.Height);
+    for i := 1 to 15 do
     begin
       ExampleControl.Left := ExampleControl.Left + 10;
       Sleep(100);
@@ -97,6 +103,7 @@ begin
         Sleep(100);
       end;
       ExampleControl.Text := ExampleControl.Text + #13#10;
+      ProgressBar.Progress := i;
     end;
   finally
     FExampleThreadDialog.Free;
