@@ -10,9 +10,13 @@ unit MTCLBasicDemoMain;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
-  System.Classes, Vcl.Graphics, System.Generics.Collections,
-  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls,
+  Windows, Messages, SysUtils, Variants, Classes, Graphics,
+  Controls, Forms, Dialogs, StdCtrls,
+  {$IFDEF Unicode}
+  System.Generics.Collections,
+  {$ELSE}
+  Contnrs,
+  {$ENDIF}
   MTCL.Dialog, MTCL.Edit, MTCL.Button, MTCL.Progress;
 
 type
@@ -40,7 +44,11 @@ type
     procedure btnHideAllWindowsClick(Sender: TObject);
     procedure btnShowAllWindowsClick(Sender: TObject);
   private
+    {$IFDEF Unicode}
     FExampleThreads: TObjectList<TExampleThread>;
+    {$ELSE}
+    FExampleThreads: TObjectList;
+    {$ENDIF}
   public
     { Public-Deklarationen }
   end;
@@ -73,19 +81,28 @@ var
   ProgressBar: TMtclProgress;
   i, j, ProgressLeft: Integer;
 begin
+  {$IFDEF Unicode}
   TThread.NameThreadForDebugging('TExampleThread: ' + FExampleText);
+  {$ENDIF}
   FExampleThreadDialog := TMtclDialog.Create(1901);
   try
     FExampleThreadDialog.Show;
+    {$IFDEF Unicode}
     ExampleControl := FExampleThreadDialog.Get<TMtclEdit>(4001);
     ResButton := FExampleThreadDialog.Get<TMtclButton>(IDOK);
-	  ResButton.OnClick := DialogButtonClick;
     SecondButton := FExampleThreadDialog.GetNew<TMtclButton>;
+    ProgressBar := FExampleThreadDialog.GetNew<TMtclProgress>;
+    {$ELSE}
+    ExampleControl := FExampleThreadDialog.Get(4001) as TMtclEdit;
+    ResButton := FExampleThreadDialog.Get(IDOK) as TMtclButton;
+    SecondButton := FExampleThreadDialog.GetNew(TMtclButton) as TMtclButton;
+    ProgressBar := FExampleThreadDialog.GetNew(TMtclProgress) as TMtclProgress;
+    {$ENDIF}
+	  ResButton.OnClick := DialogButtonClick;
     SecondButton.SetBounds(ExampleControl.Left, 2 * ExampleControl.Top + ExampleControl.Height,
       ResButton.Width, ResButton.Height);
     SecondButton.Text := 'Dynamisch';
     SecondButton.OnClick := DialogButtonClick;
-    ProgressBar := FExampleThreadDialog.GetNew<TMtclProgress>;
     ProgressBar.Min := 0;
     ProgressBar.Max := 15;
     ProgressLeft := 2 * SecondButton.Left + SecondButton.Width;
@@ -122,10 +139,14 @@ end;
 
 procedure TfrmMultithreadTestMain.btnHideAllWindowsClick(Sender: TObject);
 var
-  CurrentDialog: TExampleThread;
+  i: Integer;
 begin
-  for CurrentDialog in FExampleThreads do
-    CurrentDialog.Hide;
+  for i := 0 to FExampleThreads.Count - 1 do
+    {$IFDEF Unicode}
+    FExampleThreads[i].Hide;
+    {$ELSE}
+    TExampleThread(FExampleThreads[i]).Hide;
+    {$ENDIF}
 end;
 
 procedure TfrmMultithreadTestMain.btnNewThreadClick(Sender: TObject);
@@ -138,15 +159,23 @@ end;
 
 procedure TfrmMultithreadTestMain.btnShowAllWindowsClick(Sender: TObject);
 var
-  CurrentDialog: TExampleThread;
+  i: Integer;
 begin
-  for CurrentDialog in FExampleThreads do
-    CurrentDialog.Show;
+  for i := 0 to FExampleThreads.Count - 1 do
+    {$IFDEF Unicode}
+    FExampleThreads[i].Show;
+    {$ELSE}
+    TExampleThread(FExampleThreads[i]).Show;
+    {$ENDIF}
 end;
 
 procedure TfrmMultithreadTestMain.FormCreate(Sender: TObject);
 begin
+  {$IFDEF Unicode}
   FExampleThreads := TObjectList<TExampleThread>.Create(True);
+  {$ELSE}
+  FExampleThreads := TObjectList.Create(True);
+  {$ENDIF}
 end;
 
 procedure TfrmMultithreadTestMain.FormDestroy(Sender: TObject);

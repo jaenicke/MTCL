@@ -1,7 +1,7 @@
 program MTCLBasicDemo;
 
 uses
-  Vcl.Forms,
+  Forms,
   MTCLBasicDemoMain in 'MTCLBasicDemoMain.pas' {Form31},
   MTCL.Dialog in '..\..\source\MTCL.Dialog.pas',
   MTCL.Edit in '..\..\source\MTCL.Edit.pas',
@@ -14,7 +14,6 @@ uses
 
 begin
   Application.Initialize;
-  Application.MainFormOnTaskbar := True;
   Application.CreateForm(TfrmMultithreadTestMain, frmMultithreadTestMain);
   Application.Run;
 end.

@@ -10,7 +10,7 @@ unit MTCL.Memo;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.Classes,
+  Windows, Messages, Classes,
   MTCL.Edit;
 
 type
@@ -40,7 +40,7 @@ end;
 
 constructor TMtclMemo.Create(const ADialog, AControl: HWND; const ADialogItem: Integer);
 begin
-  inherited;
+  inherited Create(ADialog, AControl, ADialogItem);
   FLines := TStringList.Create;
   Lines.OnChange := TextChanged;
 end;

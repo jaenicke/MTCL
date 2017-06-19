@@ -10,7 +10,7 @@ unit MTCL.Button;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, System.Classes,
+  Windows, Messages, Classes,
   MTCL.BaseControl;
 
 type

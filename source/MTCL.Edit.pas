@@ -10,7 +10,7 @@ unit MTCL.Edit;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages,
+  Windows, Messages,
   MTCL.BaseControl;
 
 type

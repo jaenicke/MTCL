@@ -10,13 +10,12 @@ unit MTCL.BaseControl;
 interface
 
 uses
-  System.Classes,
-  Winapi.Windows, Winapi.Messages;
+  Classes,
+  Windows, Messages;
 
 type
   TMtclBaseControl = class(TInterfacedObject)
   private
-  var
     FDialog, FHandle: HWND;
     FOriginalWndProc: Pointer;
     FDialogItem: Integer;
@@ -32,8 +31,8 @@ type
     function GetLeft: Integer;
     function GetTop: Integer;
     function GetWidth: Integer;
-    function GetText: WideString;
-    procedure SetText(const Value: WideString);
+    function GetText: String;
+    procedure SetText(const Value: String);
     function GetTextLength: Integer;
     function GetTextBuffer(Buffer: PChar; BufSize: Integer): Integer;
   protected
@@ -53,10 +52,12 @@ type
     property Top: Integer read GetTop write SetTop;
     property Width: Integer read GetWidth write SetWidth;
     property Height: Integer read GetHeight write SetHeight;
-    property Text: WideString read GetText write SetText;
+    property Text: String read GetText write SetText;
   end;
 
 implementation
+
+uses Types;
 
 { TMtclBaseControl }
 
@@ -113,8 +114,8 @@ begin
     SetLastError(0);
     if (MapWindowPoints(HWND_DESKTOP, FDialog, WindowRect.BottomRight, 1) <> 0) or (GetLastError = 0) then
     begin
-      FWidth := WindowRect.Width;
-      FHeight := WindowRect.Height;
+      FWidth := WindowRect.Right - WindowRect.Left;
+      FHeight := WindowRect.Bottom - WindowRect.Top;
     end;
   end;
 end;
@@ -149,8 +150,6 @@ begin
 end;
 
 procedure TMtclBaseControl.WndProc(var AMsg: TMessage);
-var
-  CurrentControl: TMtclBaseControl;
 begin
   case AMsg.Msg of
     WM_CLOSE:
@@ -162,7 +161,7 @@ begin
   end;
 end;
 
-function TMtclBaseControl.GetText: WideString;
+function TMtclBaseControl.GetText: String;
 var
   Len: Integer;
 begin
@@ -186,7 +185,7 @@ begin
   Result := SendMessage(Handle, WM_GETTEXTLENGTH, 0, 0);
 end;
 
-procedure TMtclBaseControl.SetText(const Value: WideString);
+procedure TMtclBaseControl.SetText(const Value: String);
 begin
   SendMessage(Handle, WM_SETTEXT, 0, NativeInt(PChar(Value)));
 end;

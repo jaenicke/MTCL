@@ -10,7 +10,7 @@ unit MTCL.Progress;
 interface
 
 uses
-  Winapi.Windows, Winapi.Messages, Winapi.CommCtrl, System.Classes,
+  Windows, Messages, CommCtrl, Classes,
   MTCL.BaseControl;
 
 type
