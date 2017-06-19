@@ -13,6 +13,17 @@ To help reaching this goal the library is licensed under he MPL, so it can be us
 commercial or freeware application without the need to publish the code of the application 
 as well. Only changes and additions to this library have to be published.
 
+Supported versions of Delphi
+----------------------------
+I recommend using Delphi 2010 or higher, because only with generics you do not need to cast
+everywhere. And it is faster because TDictionary is used instead of simply searching in a
+list for a control. Delphi 2009 does not work, because generics were not powerful enough there.
+
+But the code works with Delphi 7 and later.
+
+If you want to use a version prior to Delphi 7, you will need to rename all units to remove 
+the dot and you will have to work around the missing MakeObjectInstance. And perhaps even more.
+
 Todo
 ----
 I'd like to add (partially done):

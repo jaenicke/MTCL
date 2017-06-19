@@ -1,9 +1,9 @@
 object frmMultithreadTestMain: TfrmMultithreadTestMain
   Left = 0
   Top = 0
-  Width = 643
-  Height = 333
   Caption = 'frmMultithreadTestMain'
+  ClientHeight = 294
+  ClientWidth = 627
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText

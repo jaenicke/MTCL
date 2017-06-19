@@ -7,12 +7,14 @@
 *)
 unit MTCL.Dialog;
 
+{$I CompilerVersions.inc}
+
 interface
 
 uses
   Classes, Windows, SysUtils, Messages, TypInfo,
-  {$IFDEF Unicode}
-  System.Generics.Collections,
+  {$IFDEF Delphi2010up}
+  Generics.Collections, Rtti,
   {$ELSE}
   Contnrs,
   {$ENDIF}
@@ -28,7 +30,7 @@ type
   private
     FResource: Integer;
     FHandle: HWND;
-    {$IFDEF Unicode}
+    {$IFDEF Delphi2010up}
     FControls: TObjectList<TMtclBaseControl>;
     FControlsByID: TDictionary<Integer, TMtclBaseControl>;
     FControlsByHandle: TDictionary<HWND, TMtclBaseControl>;
@@ -42,7 +44,7 @@ type
     procedure AddControl(const AHandle: HWND);
     procedure MtclDialogProc(var AMessage: TMessage);
     function GetNewControlID: Integer;
-    {$IFNDEF Unicode}
+    {$IFNDEF Delphi2010up}
     procedure CreateNewControl;
     {$ENDIF}
   protected
@@ -52,7 +54,7 @@ type
     destructor Destroy; override;
     procedure Show;
     procedure Hide;
-    {$IFDEF Unicode}
+    {$IFDEF Delphi2010up}
     function Get<T: TMtclBaseControl>(const AControlID: Integer): T;
     function GetNew<T: TMtclBaseControl>: T;
     {$ELSE}
@@ -74,7 +76,7 @@ type
     procedure Hide;
     procedure Close;
     property Handle: HWND read GetHandle write SetHandle;
-    {$IFDEF Unicode}
+    {$IFDEF Delphi2010up}
     function Get<T: TMtclBaseControl>(const AControlID: Integer): T;
     function GetNew<T: TMtclBaseControl>: T;
     {$ELSE}
@@ -113,7 +115,7 @@ begin
     if Assigned(AddedControl) then
     begin
       FControls.Add(AddedControl);
-      {$IFDEF Unicode}
+      {$IFDEF Delphi2010up}
       FControlsByID.Add(ControlID, AddedControl);
       FControlsByHandle.Add(AHandle, AddedControl);
       {$ENDIF}
@@ -128,7 +130,7 @@ begin
   inherited Create(False);
   FResource := AResource;
   FState := CreateEvent(nil, True, False, nil);
-  {$IFDEF Unicode}
+  {$IFDEF Delphi2010up}
   FControls := TObjectList<TMtclBaseControl>.Create(True);
   FControlsByID := TDictionary<Integer, TMtclBaseControl>.Create;
   FControlsByHandle := TDictionary<HWND, TMtclBaseControl>.Create;
@@ -139,7 +141,7 @@ end;
 
 destructor TMtclDialogThread.Destroy;
 begin
-  {$IFDEF Unicode}
+  {$IFDEF Delphi2010up}
   FControlsByHandle.Free;
   FControlsByID.Free;
   {$ENDIF}
@@ -151,7 +153,7 @@ procedure TMtclDialogThread.Execute;
 var
   CurrentMessage: TMsg;
 begin
-  {$IFDEF Unicode}
+  {$IFDEF Delphi2010up}
   TThread.NameThreadForDebugging('TMtclDialogThread ' + IntToStr(FResource));
   {$ENDIF}
   FHandle := CreateDialogParam(hInstance, MAKEINTRESOURCE(FResource), 0, MakeObjectInstance(MtclDialogProc), 0);
@@ -172,26 +174,30 @@ begin
   DestroyWindow(FHandle);
 end;
 
-{$IFDEF Unicode}
+{$IFDEF Delphi2010up}
 function TMtclDialogThread.Get<T>(const AControlID: Integer): T;
 var
   ResultControl: TMtclBaseControl;
 begin
-  if FControlsByID.TryGetValue(AControlID, ResultControl) and (ResultControl is T) then
+  if FControlsByID.TryGetValue(AControlID, ResultControl) and (ResultControl is TClass(T)) then
     Result := T(ResultControl)
   else
+{$IFDEF DelphiXEup}
     Result := nil;
+{$ELSE}
+    Result := TValue.Empty.AsType<T>;
+{$ENDIF}
 end;
 
 function TMtclDialogThread.GetNew<T>: T;
 var
-  ResultControl: T;
+  ResultControl: TMtclBaseControl;
 begin
   TThread.Synchronize(Self, procedure
     begin
-      ResultControl := T.Create(Self.Handle, Self.GetNewControlID);
+      ResultControl := TMtclBaseControlClass(T).Create(Self.Handle, Self.GetNewControlID);
     end);
-  Result := ResultControl;
+  Result := T(ResultControl);
   FControls.Add(Result);
   FControlsByID.Add(Result.DialogItem, Result);
   FControlsByHandle.Add(Result.Handle, Result);
@@ -244,7 +250,7 @@ begin
       DestroyWindow(FHandle);
     WM_COMMAND:
       begin
-        {$IFDEF Unicode}
+        {$IFDEF Delphi2010up}
         CurrentControl := Get<TMtclBaseControl>(AMessage.WParamLo);
         {$ELSE}
         CurrentControl := Get(AMessage.WParamLo);
@@ -281,7 +287,7 @@ begin
   inherited;
 end;
 
-{$IFDEF Unicode}
+{$IFDEF Delphi2010up}
 function TMtclDialog.Get<T>(const AControlID: Integer): T;
 begin
   Result := FDialogThread.Get<T>(AControlID);

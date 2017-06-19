@@ -7,13 +7,15 @@
 *)
 unit MTCLBasicDemoMain;
 
+{$I ..\..\source\CompilerVersions.inc}
+
 interface
 
 uses
   Windows, Messages, SysUtils, Variants, Classes, Graphics,
   Controls, Forms, Dialogs, StdCtrls,
-  {$IFDEF Unicode}
-  System.Generics.Collections,
+  {$IFDEF Delphi2010up}
+  Generics.Collections,
   {$ELSE}
   Contnrs,
   {$ENDIF}
@@ -44,7 +46,7 @@ type
     procedure btnHideAllWindowsClick(Sender: TObject);
     procedure btnShowAllWindowsClick(Sender: TObject);
   private
-    {$IFDEF Unicode}
+    {$IFDEF Delphi2010up}
     FExampleThreads: TObjectList<TExampleThread>;
     {$ELSE}
     FExampleThreads: TObjectList;
@@ -81,13 +83,13 @@ var
   ProgressBar: TMtclProgress;
   i, j, ProgressLeft: Integer;
 begin
-  {$IFDEF Unicode}
+  {$IFDEF Delphi2010up}
   TThread.NameThreadForDebugging('TExampleThread: ' + FExampleText);
   {$ENDIF}
   FExampleThreadDialog := TMtclDialog.Create(1901);
   try
     FExampleThreadDialog.Show;
-    {$IFDEF Unicode}
+    {$IFDEF Delphi2010up}
     ExampleControl := FExampleThreadDialog.Get<TMtclEdit>(4001);
     ResButton := FExampleThreadDialog.Get<TMtclButton>(IDOK);
     SecondButton := FExampleThreadDialog.GetNew<TMtclButton>;
@@ -142,7 +144,7 @@ var
   i: Integer;
 begin
   for i := 0 to FExampleThreads.Count - 1 do
-    {$IFDEF Unicode}
+    {$IFDEF Delphi2010up}
     FExampleThreads[i].Hide;
     {$ELSE}
     TExampleThread(FExampleThreads[i]).Hide;
@@ -162,7 +164,7 @@ var
   i: Integer;
 begin
   for i := 0 to FExampleThreads.Count - 1 do
-    {$IFDEF Unicode}
+    {$IFDEF Delphi2010up}
     FExampleThreads[i].Show;
     {$ELSE}
     TExampleThread(FExampleThreads[i]).Show;
@@ -171,7 +173,7 @@ end;
 
 procedure TfrmMultithreadTestMain.FormCreate(Sender: TObject);
 begin
-  {$IFDEF Unicode}
+  {$IFDEF Delphi2010up}
   FExampleThreads := TObjectList<TExampleThread>.Create(True);
   {$ELSE}
   FExampleThreads := TObjectList.Create(True);
