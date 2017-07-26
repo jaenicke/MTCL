@@ -34,57 +34,62 @@
                   {$DEFINE Delphi2006}
                   {$DEFINE Delphi2006up}
                 {$ELSE}
-                  {$IFDEF VER200}
-                    {$DEFINE Delphi2009}
-                    {$DEFINE Delphi2009up}
+                  {$IFDEF VER190}
+                    {$DEFINE Delphi2007}
+                    {$DEFINE Delphi2007up}
                   {$ELSE}
-                    {$IFDEF VER210}
-                      {$DEFINE Delphi2010}
-                      {$DEFINE Delphi2010up}
+                    {$IFDEF VER200}
+                      {$DEFINE Delphi2009}
+                      {$DEFINE Delphi2009up}
                     {$ELSE}
-                      {$IFDEF VER220}
-                        {$DEFINE DelphiXE}
-                        {$DEFINE DelphiXEup}
+                      {$IFDEF VER210}
+                        {$DEFINE Delphi2010}
+                        {$DEFINE Delphi2010up}
                       {$ELSE}
-                        {$IFDEF VER230}
-                          {$DEFINE DelphiXE2}
-                          {$DEFINE DelphiXE2up}
+                        {$IFDEF VER220}
+                          {$DEFINE DelphiXE}
+                          {$DEFINE DelphiXEup}
                         {$ELSE}
-                          {$IFDEF VER240}
-                            {$DEFINE DelphiXE3}
-                            {$DEFINE DelphiXE3up}
+                          {$IFDEF VER230}
+                            {$DEFINE DelphiXE2}
+                            {$DEFINE DelphiXE2up}
                           {$ELSE}
-                            {$IFDEF VER250}
-                              {$DEFINE DelphiXE4}
-                              {$DEFINE DelphiXE4up}
+                            {$IFDEF VER240}
+                              {$DEFINE DelphiXE3}
+                              {$DEFINE DelphiXE3up}
                             {$ELSE}
-                              {$IFDEF VER260}
-                                {$DEFINE DelphiXE5}
-                                {$DEFINE DelphiXE5up}
+                              {$IFDEF VER250}
+                                {$DEFINE DelphiXE4}
+                                {$DEFINE DelphiXE4up}
                               {$ELSE}
-                                {$IFDEF VER270}
-                                  {$DEFINE DelphiXE6}
-                                  {$DEFINE DelphiXE6up}
+                                {$IFDEF VER260}
+                                  {$DEFINE DelphiXE5}
+                                  {$DEFINE DelphiXE5up}
                                 {$ELSE}
-                                  {$IFDEF VER280}
-                                    {$DEFINE DelphiXE7}
-                                    {$DEFINE DelphiXE7up}
+                                  {$IFDEF VER270}
+                                    {$DEFINE DelphiXE6}
+                                    {$DEFINE DelphiXE6up}
                                   {$ELSE}
-                                    {$IFDEF VER290}
-                                      {$DEFINE DelphiXE8}
-                                      {$DEFINE DelphiXE8up}
+                                    {$IFDEF VER280}
+                                      {$DEFINE DelphiXE7}
+                                      {$DEFINE DelphiXE7up}
                                     {$ELSE}
-                                      {$IFDEF VER300}
-                                        {$DEFINE Delphi10Seattle}
-                                        {$DEFINE Delphi10SeattleUp}
+                                      {$IFDEF VER290}
+                                        {$DEFINE DelphiXE8}
+                                        {$DEFINE DelphiXE8up}
                                       {$ELSE}
-                                        {$IFDEF VER310}
-                                          {$DEFINE Delphi10Berlin}
-                                          {$DEFINE Delphi10BerlinUp}
+                                        {$IFDEF VER300}
+                                          {$DEFINE Delphi10Seattle}
+                                          {$DEFINE Delphi10SeattleUp}
                                         {$ELSE}
-                                          {$IFDEF VER330}
-                                            {$DEFINE Delphi10Tokyo}
-                                            {$DEFINE Delphi10TokyoUp}
+                                          {$IFDEF VER310}
+                                            {$DEFINE Delphi10Berlin}
+                                            {$DEFINE Delphi10BerlinUp}
+                                          {$ELSE}
+                                            {$IFDEF VER330}
+                                              {$DEFINE Delphi10Tokyo}
+                                              {$DEFINE Delphi10TokyoUp}
+                                            {$ENDIF}
                                           {$ENDIF}
                                         {$ENDIF}
                                       {$ENDIF}
@@ -106,5 +111,72 @@
       {$ENDIF}
     {$ENDIF}
   {$ENDIF}
+{$ENDIF}
+
+{$IFDEF Delphi10TokyoUp}
+{$DEFINE Delphi10BerlinUp}
+{$ENDIF}
+{$IFDEF Delphi10BerlinUp}
+{$DEFINE Delphi10SeattleUp}
+{$ENDIF}
+{$IFDEF Delphi10SeattleUp}
+{$DEFINE DelphiXE8up}
+{$ENDIF}
+{$IFDEF DelphiXE8up}
+{$DEFINE DelphiXE7up}
+{$ENDIF}
+{$IFDEF DelphiXE7up}
+{$DEFINE DelphiXE6up}
+{$ENDIF}
+{$IFDEF DelphiXE6up}
+{$DEFINE DelphiXE5up}
+{$ENDIF}
+{$IFDEF DelphiXE5up}
+{$DEFINE DelphiXE4up}
+{$ENDIF}
+{$IFDEF DelphiXE4up}
+{$DEFINE DelphiXE3up}
+{$ENDIF}
+{$IFDEF DelphiXE3up}
+{$DEFINE DelphiXE2up}
+{$ENDIF}
+{$IFDEF DelphiXE2up}
+{$DEFINE DelphiXEup}
+{$ENDIF}
+{$IFDEF DelphiXEup}
+{$DEFINE Delphi2010up}
+{$ENDIF}
+{$IFDEF Delphi2010up}
+{$DEFINE Delphi2009up}
+{$ENDIF}
+{$IFDEF Delphi2009up}
+{$DEFINE Delphi2007up}
+{$ENDIF}
+{$IFDEF Delphi2007up}
+{$DEFINE Delphi2006up}
+{$ENDIF}
+{$IFDEF Delphi2006up}
+{$DEFINE Delphi2005up}
+{$ENDIF}
+{$IFDEF Delphi2005up}
+{$DEFINE Delphi7up}
+{$ENDIF}
+{$IFDEF Delphi7up}
+{$DEFINE Delphi6up}
+{$ENDIF}
+{$IFDEF Delphi6up}
+{$DEFINE Delphi5up}
+{$ENDIF}
+{$IFDEF Delphi5up}
+{$DEFINE Delphi4up}
+{$ENDIF}
+{$IFDEF Delphi4up}
+{$DEFINE Delphi3up}
+{$ENDIF}
+{$IFDEF Delphi3up}
+{$DEFINE Delphi2up}
+{$ENDIF}
+{$IFDEF Delphi2up}
+{$DEFINE Delphi1up}
 {$ENDIF}
 
