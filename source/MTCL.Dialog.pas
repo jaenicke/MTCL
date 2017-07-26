@@ -12,11 +12,15 @@ unit MTCL.Dialog;
 interface
 
 uses
+  {$IFDEF DelphiXE2up}
+  System.Classes, Winapi.Windows, System.SysUtils, Winapi.Messages, System.TypInfo, System.Generics.Collections,
+  {$ELSE}
   Classes, Windows, SysUtils, Messages, TypInfo,
   {$IFDEF Delphi2010up}
   Generics.Collections, Rtti,
   {$ELSE}
   Contnrs,
+  {$ENDIF}
   {$ENDIF}
   MTCL.BaseControl, MTCL.Button, MTCL.Memo;
 

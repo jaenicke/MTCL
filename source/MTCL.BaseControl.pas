@@ -9,9 +9,14 @@ unit MTCL.BaseControl;
 
 interface
 
+{$I CompilerVersions.inc}
+
 uses
-  Classes,
-  Windows, Messages;
+  {$IFDEF DelphiXE2up}
+  System.Classes, Winapi.Windows, Winapi.Messages;
+  {$ELSE}
+  Classes, Windows, Messages;
+  {$ENDIF}
 
 type
   TMtclBaseControl = class(TInterfacedObject)

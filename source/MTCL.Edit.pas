@@ -9,8 +9,14 @@ unit MTCL.Edit;
 
 interface
 
+{$I CompilerVersions.inc}
+
 uses
+  {$IFDEF DelphiXE2up}
+  Winapi.Windows, Winapi.Messages,
+  {$ELSE}
   Windows, Messages,
+  {$ENDIF}
   MTCL.BaseControl;
 
 type

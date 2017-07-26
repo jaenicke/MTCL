@@ -9,8 +9,14 @@ unit MTCL.Button;
 
 interface
 
+{$I CompilerVersions.inc}
+
 uses
-  Windows, Messages, Classes,
+  {$IFDEF DelphiXE2up}
+  System.Classes, Winapi.Windows, Winapi.Messages,
+  {$ELSE}
+  Classes, Windows, Messages,
+  {$ENDIF}
   MTCL.BaseControl;
 
 type

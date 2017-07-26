@@ -9,8 +9,14 @@ unit MTCL.Progress;
 
 interface
 
+{$I CompilerVersions.inc}
+
 uses
+  {$IFDEF DelphiXE2up}
+  System.Classes, Winapi.Windows, Winapi.Messages, Winapi.CommCtrl,
+  {$ELSE}
   Windows, Messages, CommCtrl, Classes,
+  {$ENDIF}
   MTCL.BaseControl;
 
 type
