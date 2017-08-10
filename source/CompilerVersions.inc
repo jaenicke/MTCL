@@ -86,7 +86,7 @@
                                             {$DEFINE Delphi10Berlin}
                                             {$DEFINE Delphi10BerlinUp}
                                           {$ELSE}
-                                            {$IFDEF VER330}
+                                            {$IFDEF VER320}
                                               {$DEFINE Delphi10Tokyo}
                                               {$DEFINE Delphi10TokyoUp}
                                             {$ENDIF}
