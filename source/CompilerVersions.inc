@@ -88,8 +88,8 @@
                                           {$ELSE}
                                             {$IFDEF VER320}
                                               {$DEFINE Delphi10Tokyo}
-                                              {$DEFINE Delphi10TokyoUp}
                                             {$ENDIF}
+                                            {$DEFINE Delphi10TokyoUp}
                                           {$ENDIF}
                                         {$ENDIF}
                                       {$ENDIF}
