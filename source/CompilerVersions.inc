@@ -88,8 +88,13 @@
                                           {$ELSE}
                                             {$IFDEF VER320}
                                               {$DEFINE Delphi10Tokyo}
+                                              {$DEFINE Delphi10TokyoUp}
+                                            {$ELSE}
+                                              {$IFDEF VER330}
+                                                {$DEFINE Delphi10Rio}
+                                              {$ENDIF}
+                                              {$DEFINE Delphi10RioUp}
                                             {$ENDIF}
-                                            {$DEFINE Delphi10TokyoUp}
                                           {$ENDIF}
                                         {$ENDIF}
                                       {$ENDIF}
@@ -113,13 +118,33 @@
   {$ENDIF}
 {$ENDIF}
 
+{$IFDEF Delphi10Rio}
+{$DEFINE Delphi10_3}
+{$ENDIF}
+{$IFDEF Delphi10Tokyo}
+{$DEFINE Delphi10_2}
+{$ENDIF}
+{$IFDEF Delphi10Berlin}
+{$DEFINE Delphi10_1}
+{$ENDIF}
+{$IFDEF Delphi10Seattle}
+{$DEFINE Delphi10_0}
+{$ENDIF}
+
+{$IFDEF Delphi10RioUp}
+{$DEFINE Delphi10_3Up}
+{$DEFINE Delphi10TokyoUp}
+{$ENDIF}
 {$IFDEF Delphi10TokyoUp}
+{$DEFINE Delphi10_2Up}
 {$DEFINE Delphi10BerlinUp}
 {$ENDIF}
 {$IFDEF Delphi10BerlinUp}
+{$DEFINE Delphi10_1Up}
 {$DEFINE Delphi10SeattleUp}
 {$ENDIF}
 {$IFDEF Delphi10SeattleUp}
+{$DEFINE Delphi10_0Up}
 {$DEFINE DelphiXE8up}
 {$ENDIF}
 {$IFDEF DelphiXE8up}
