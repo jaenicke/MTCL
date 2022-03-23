@@ -27,6 +27,7 @@ type
     FWidth: Integer;
     FTop: Integer;
     FHeight: Integer;
+    FVisible: Boolean;
     FLeft: Integer;
     FFont: TFont;
     procedure SetHeight(const Value: Integer);
@@ -41,6 +42,8 @@ type
     procedure SetText(const Value: String);
     function GetTextLength: Integer;
     function GetTextBuffer(Buffer: PChar; BufSize: Integer): Integer;
+    function GetVisible: Boolean;
+    procedure SetVisible(const Value: Boolean);
   protected
     procedure Init; virtual;
     procedure WndProc(var AMsg: TMessage); virtual;
@@ -60,6 +63,7 @@ type
     property Top: Integer read GetTop write SetTop;
     property Width: Integer read GetWidth write SetWidth;
     property Height: Integer read GetHeight write SetHeight;
+    property Visible: Boolean read GetVisible write SetVisible;
     property Text: String read GetText write SetText;
     property Font: TFont read FFont;
   end;
@@ -117,6 +121,11 @@ begin
   Result := FTop;
 end;
 
+function TMtclBaseControl.GetVisible: Boolean;
+begin
+  Result := FVisible;
+end;
+
 function TMtclBaseControl.GetWidth: Integer;
 begin
   Result := FWidth;
@@ -126,6 +135,7 @@ procedure TMtclBaseControl.Init;
 var
   WindowRect: TRect;
 begin
+  Visible := True;
   if GetWindowRect(FHandle, WindowRect) then
   begin
     SetLastError(0);
@@ -169,6 +179,21 @@ end;
 procedure TMtclBaseControl.SetTop(const Value: Integer);
 begin
   SetBounds(FLeft, Value, FWidth, FHeight);
+end;
+
+procedure TMtclBaseControl.SetVisible(const Value: Boolean);
+var
+  ShowValue: Integer;
+begin
+  if FVisible <> Value then
+  begin
+    FVisible := Value;
+    if FVisible then
+      ShowValue := SW_SHOW
+    else
+      ShowValue := SW_HIDE;
+    ShowWindow(FHandle, ShowValue);
+  end;
 end;
 
 procedure TMtclBaseControl.SetWidth(const Value: Integer);
