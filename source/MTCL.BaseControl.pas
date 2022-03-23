@@ -13,7 +13,7 @@ interface
 
 uses
   {$IFDEF DelphiXE2up}
-  System.Classes, Winapi.Windows, Winapi.Messages;
+  System.Classes, Winapi.Windows, Winapi.Messages, Vcl.Graphics;
   {$ELSE}
   Classes, Windows, Messages;
   {$ENDIF}
@@ -28,6 +28,7 @@ type
     FTop: Integer;
     FHeight: Integer;
     FLeft: Integer;
+    FFont: TFont;
     procedure SetHeight(const Value: Integer);
     procedure SetLeft(const Value: Integer);
     procedure SetTop(const Value: Integer);
@@ -43,9 +44,11 @@ type
   protected
     procedure Init; virtual;
     procedure WndProc(var AMsg: TMessage); virtual;
+    procedure FontChanged(Sender: TObject); virtual;
   public
     constructor Create(const ADialog, AControl: HWND; const ADialogItem: Integer); overload; virtual;
     constructor Create(const ADialog: HWND; const ADialogItem: Integer); overload; virtual;
+    destructor Destroy; override;
 
     procedure SetBounds(const ALeft, ATop, AWidth, AHeight: Integer); virtual;
 
@@ -58,6 +61,7 @@ type
     property Width: Integer read GetWidth write SetWidth;
     property Height: Integer read GetHeight write SetHeight;
     property Text: String read GetText write SetText;
+    property Font: TFont read FFont;
   end;
 
 implementation
@@ -68,6 +72,8 @@ uses Types;
 
 constructor TMtclBaseControl.Create(const ADialog, AControl: HWND; const ADialogItem: Integer);
 begin
+  FFont := TFont.Create;
+  FFont.OnChange := FontChanged;
   FDialog := ADialog;
   FHandle := AControl;
   FDialogItem := ADialogItem;
@@ -78,9 +84,22 @@ end;
 
 constructor TMtclBaseControl.Create(const ADialog: HWND; const ADialogItem: Integer);
 begin
+  FFont := TFont.Create;
+  FFont.OnChange := FontChanged;
   FDialog := ADialog;
   FDialogItem := ADialogItem;
   Init;
+end;
+
+destructor TMtclBaseControl.Destroy;
+begin
+  FFont.Free;
+  inherited;
+end;
+
+procedure TMtclBaseControl.FontChanged(Sender: TObject);
+begin
+  SendMessage(FHandle, WM_SETFONT, FFont.Handle, 1);
 end;
 
 function TMtclBaseControl.GetHeight: Integer;
@@ -123,6 +142,9 @@ begin
       FHeight := WindowRect.Bottom - WindowRect.Top;
     end;
   end;
+  FFont.Handle := CreateFont(13, 0, 0, 0, FW_DONTCARE, 0, 0, 0, ANSI_CHARSET,
+      OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+      DEFAULT_PITCH or FF_DONTCARE, 'Tahoma');
 end;
 
 procedure TMtclBaseControl.SetBounds(const ALeft, ATop, AWidth, AHeight: Integer);

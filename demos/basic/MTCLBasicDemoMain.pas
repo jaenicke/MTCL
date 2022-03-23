@@ -116,6 +116,7 @@ begin
     ProgressBar.SetBounds(ProgressLeft, SecondButton.Top, ResButton.Left - ProgressLeft - SecondButton.Left, SecondButton.Height);
     for i := 1 to 15 do
     begin
+      ExampleControl.Font.Height := 13 + Random(10);
       ExampleControl.Left := ExampleControl.Left + 10;
       Sleep(100);
       ExampleControl.Left := ExampleControl.Left - 10;
