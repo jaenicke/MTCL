@@ -116,7 +116,7 @@
                                                     {$IF declared(RTLVersion111)}{$IF RTLVersion111}
                                                       {$DEFINE Delphi11_1}
                                                       {$DEFINE Delphi11_1Up}
-                                                    {$ENDIF}{$ENDIF}
+                                                    {$IFEND}{$IFEND}
                                                   {$ELSE}
                                                     {$DEFINE Delphi11_1Up}
                                                   {$ENDIF}
