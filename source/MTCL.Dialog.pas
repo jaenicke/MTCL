@@ -40,17 +40,13 @@ type
     FControlsByHandle: TDictionary<HWND, TMtclBaseControl>;
     {$ELSE}
     FControls: TObjectList;
-    FResultControl: TMtclBaseControl;
-    FResultClass: TMtclBaseControlClass;
     {$ENDIF}
     FState: Integer;
     FLastControlID: Integer;
     procedure AddControl(const AHandle: HWND);
     procedure MtclDialogProc(var AMessage: TMessage);
     function GetNewControlID: Integer;
-    {$IFNDEF Delphi2010up}
-    procedure CreateNewControl;
-    {$ENDIF}
+    function CreateControlOnThread(const AClass: TMtclBaseControlClass): TMtclBaseControl;
   protected
     procedure Execute; override;
   public
@@ -90,6 +86,19 @@ type
   end;
 
 implementation
+
+const
+  // Private message used to marshal control creation onto the dialog thread.
+  // WM_APP range (not WM_USER) because a dialog reserves WM_USER..WM_USER+n for
+  // its dialog-manager messages (DM_GETDEFID = WM_USER+0, DM_SETDEFID = WM_USER+1).
+  WM_MTCL_CREATECONTROL = WM_APP + 1;
+
+type
+  PMtclCreateRequest = ^TMtclCreateRequest;
+  TMtclCreateRequest = record
+    ControlClass: TMtclBaseControlClass;
+    Control: TMtclBaseControl;
+  end;
 
 function EnumWindowsProc(AHandle: HWND; ADialog: TMtclDialogThread): Bool; stdcall;
 begin
@@ -156,6 +165,7 @@ end;
 procedure TMtclDialogThread.Execute;
 var
   CurrentMessage: TMsg;
+  DummyHandle: THandle;
 begin
   {$IFDEF Delphi2010up}
   TThread.NameThreadForDebugging('TMtclDialogThread ' + IntToStr(FResource));
@@ -165,15 +175,31 @@ begin
   EnumChildWindows(FHandle, @EnumWindowsProc, Integer(Self));
   InvalidateRect(FHandle, nil, True);
   SetEvent(FState);
-{$BOOLEVAL OFF}
   while not Terminated do
   begin
-    if PeekMessage(CurrentMessage, 0, 0, 0, PM_REMOVE) and not IsDialogMessage(FHandle, CurrentMessage) then
+    // Drain every message currently waiting before going back to sleep.
+    // The previous "single PeekMessage + Sleep(1)" loop processed at most one
+    // message per millisecond. Under load that starved WM_PAINT/WM_CTLCOLOR and
+    // caused controls to flicker or stay invisible (and it busy-spun the CPU).
+    while PeekMessage(CurrentMessage, 0, 0, 0, PM_REMOVE) do
     begin
-      TranslateMessage(CurrentMessage);
-      DispatchMessage(CurrentMessage);
+      if CurrentMessage.Message = WM_QUIT then
+      begin
+        Terminate;
+        Break;
+      end;
+      if not IsDialogMessage(FHandle, CurrentMessage) then
+      begin
+        TranslateMessage(CurrentMessage);
+        DispatchMessage(CurrentMessage);
+      end;
     end;
-    Sleep(1);
+    if Terminated then
+      Break;
+    // Block until new input arrives (including cross-thread SendMessage, which is
+    // how control creation and property changes from other threads reach us) or
+    // until the timeout elapses, so a Terminate from another thread is noticed.
+    MsgWaitForMultipleObjects(0, DummyHandle, False, 100, QS_ALLINPUT);
   end;
   DestroyWindow(FHandle);
 end;
@@ -194,17 +220,8 @@ begin
 end;
 
 function TMtclDialogThread.GetNew<T>: T;
-var
-  ResultControl: TMtclBaseControl;
 begin
-  TThread.Synchronize(Self, procedure
-    begin
-      ResultControl := TMtclBaseControlClass(T).Create(Self.Handle, Self.GetNewControlID);
-    end);
-  Result := T(ResultControl);
-  FControls.Add(Result);
-  FControlsByID.Add(Result.DialogItem, Result);
-  FControlsByHandle.Add(Result.Handle, Result);
+  Result := T(CreateControlOnThread(TMtclBaseControlClass(T)));
 end;
 {$ELSE}
 function TMtclDialogThread.Get(const AControlID: Integer): TMtclBaseControl;
@@ -220,19 +237,25 @@ begin
   Result := nil;
 end;
 
-procedure TMtclDialogThread.CreateNewControl;
-begin
-  FResultControl := FResultClass.Create(Self.Handle, Self.GetNewControlID);
-end;
-
 function TMtclDialogThread.GetNew(const AClass: TMtclBaseControlClass): TMtclBaseControl;
 begin
-  FResultClass := AClass;
-  TThread.Synchronize(Self, CreateNewControl);
-  Result := FResultControl;
-  FControls.Add(Result);
+  Result := CreateControlOnThread(AClass);
 end;
 {$ENDIF}
+
+function TMtclDialogThread.CreateControlOnThread(const AClass: TMtclBaseControlClass): TMtclBaseControl;
+var
+  Request: TMtclCreateRequest;
+begin
+  Request.ControlClass := AClass;
+  Request.Control := nil;
+  // Marshal the creation onto the dialog thread. SendMessage blocks until the
+  // dialog thread has handled WM_MTCL_CREATECONTROL, so on return Request.Control
+  // is set and the control is registered in the collections - all done on the
+  // thread that owns the parent dialog and runs its message loop.
+  SendMessage(FHandle, WM_MTCL_CREATECONTROL, WPARAM(@Request), 0);
+  Result := Request.Control;
+end;
 
 function TMtclDialogThread.GetNewControlID: Integer;
 begin
@@ -248,10 +271,27 @@ end;
 procedure TMtclDialogThread.MtclDialogProc(var AMessage: TMessage);
 var
   CurrentControl: TMtclBaseControl;
+  Request: PMtclCreateRequest;
 begin
   case AMessage.Msg of
     WM_CLOSE:
       DestroyWindow(FHandle);
+    WM_MTCL_CREATECONTROL:
+      begin
+        // Runs on the dialog thread (sent here from GetNew via SendMessage), so
+        // the new child window is owned by the same thread as its parent dialog
+        // and by the message loop that paints it. Creating it on the caller's
+        // thread (the old Synchronize-on-main-thread approach) gave the child a
+        // different owning thread than its parent and led to invisible controls.
+        Request := PMtclCreateRequest(AMessage.WParam);
+        Request^.Control := Request^.ControlClass.Create(FHandle, GetNewControlID);
+        FControls.Add(Request^.Control);
+        {$IFDEF Delphi2010up}
+        FControlsByID.Add(Request^.Control.DialogItem, Request^.Control);
+        FControlsByHandle.Add(Request^.Control.Handle, Request^.Control);
+        {$ENDIF}
+        AMessage.Result := 1;
+      end;
     WM_COMMAND:
       begin
         {$IFDEF Delphi2010up}
