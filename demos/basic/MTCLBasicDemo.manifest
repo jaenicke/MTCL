@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<assembly xmlns="urn:schemas-microsoft-com:asm.v1" manifestVersion="1.0">
+  <assemblyIdentity
+      type="win32"
+      name="MTCLBasicDemo"
+      version="1.0.0.0"
+      processorArchitecture="*"/>
+  <!--
+    Aktiviert ComCtl32 v6. Ohne diese Abhaengigkeit laedt der Prozess die
+    alte v5-DLL und alle per API erzeugten Controls (Button, Edit, Progress)
+    werden im klassischen Win2k-Stil ohne Theming gezeichnet.
+  -->
+  <dependency>
+    <dependentAssembly>
+      <assemblyIdentity
+          type="win32"
+          name="Microsoft.Windows.Common-Controls"
+          version="6.0.0.0"
+          processorArchitecture="*"
+          publicKeyToken="6595b64144ccf1df"
+          language="*"/>
+    </dependentAssembly>
+  </dependency>
+  <trustInfo xmlns="urn:schemas-microsoft-com:asm.v3">
+    <security>
+      <requestedPrivileges>
+        <requestedExecutionLevel level="asInvoker" uiAccess="false"/>
+      </requestedPrivileges>
+    </security>
+  </trustInfo>
+  <!--
+    Bewusst KEINE dpiAware-Deklaration: die MTCL-Controls werden in absoluten
+    Pixeln positioniert. Ohne DPI-Awareness bleibt das Verhalten wie bisher
+    (Windows skaliert per Bitmap), nur eben jetzt mit Theming.
+  -->
+</assembly>
