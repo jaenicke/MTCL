@@ -46,6 +46,8 @@ type
     FLastClientW: Integer;
     FLastClientH: Integer;
     FClientSizeKnown: Boolean;
+    FUseTemplate: Boolean;
+    procedure SetupCollections;
     procedure AddControl(const AHandle: HWND);
     procedure MtclDialogProc(var AMessage: TMessage);
     function GetNewControlID: Integer;
@@ -55,6 +57,7 @@ type
     procedure Execute; override;
   public
     constructor Create(const AResource: Integer);
+    constructor CreateNew;
     destructor Destroy; override;
     procedure Show;
     procedure Hide;
@@ -83,6 +86,7 @@ type
     procedure EnsureReady; override;
   public
     constructor Create(const AResource: Integer);
+    constructor CreateNew;
     destructor Destroy; override;
     procedure Show;
     procedure Hide;
@@ -109,6 +113,17 @@ type
   TMtclCreateRequest = record
     ControlClass: TMtclBaseControlClass;
     Control: TMtclBaseControl;
+  end;
+
+  // In-memory dialog template for resource-less dialogs (CreateNew). A
+  // DLGTEMPLATE with no controls (cdit = 0), no menu, the default dialog class
+  // and an empty title - so there are no strings whose ANSI/Unicode layout would
+  // differ. The caption and size are set afterwards via Text and Width/Height.
+  TMtclDlgTemplate = packed record
+    Template: TDlgTemplate;
+    Menu: Word;
+    WindowClass: Word;
+    Title: Word;
   end;
 
 function EnumWindowsProc(AHandle: HWND; ADialog: TMtclDialogThread): Bool; stdcall;
@@ -151,8 +166,23 @@ end;
 
 constructor TMtclDialogThread.Create(const AResource: Integer);
 begin
+  // Create(False) starts the thread only after construction finishes
+  // (TThread.AfterConstruction), so the fields set below are in place before
+  // Execute reads them.
   inherited Create(False);
   FResource := AResource;
+  SetupCollections;
+end;
+
+constructor TMtclDialogThread.CreateNew;
+begin
+  inherited Create(False);
+  FUseTemplate := True;
+  SetupCollections;
+end;
+
+procedure TMtclDialogThread.SetupCollections;
+begin
   FState := CreateEvent(nil, True, False, nil);
   {$IFDEF Delphi2010up}
   FControls := TObjectList<TMtclBaseControl>.Create(True);
@@ -178,11 +208,25 @@ var
   CurrentMessage: TMsg;
   DummyHandle: THandle;
   ClientRect: TRect;
+  DlgTemplate: TMtclDlgTemplate;
 begin
   {$IFDEF Delphi2010up}
   TThread.NameThreadForDebugging('TMtclDialogThread ' + IntToStr(FResource));
   {$ENDIF}
-  FHandle := CreateDialogParam(hInstance, MAKEINTRESOURCE(FResource), 0, MakeObjectInstance(MtclDialogProc), 0);
+  if FUseTemplate then
+  begin
+    // Build a minimal, resizable, centered dialog entirely in code - no resource.
+    FillChar(DlgTemplate, SizeOf(DlgTemplate), 0);
+    DlgTemplate.Template.style := WS_POPUP or WS_CAPTION or WS_SYSMENU or
+      WS_THICKFRAME or WS_MINIMIZEBOX or WS_MAXIMIZEBOX or DS_CENTER;
+    DlgTemplate.Template.dwExtendedStyle := WS_EX_CONTROLPARENT;
+    DlgTemplate.Template.cx := 200;
+    DlgTemplate.Template.cy := 150;
+    FHandle := CreateDialogIndirectParam(hInstance, DlgTemplate.Template, 0,
+      MakeObjectInstance(MtclDialogProc), 0);
+  end
+  else
+    FHandle := CreateDialogParam(hInstance, MAKEINTRESOURCE(FResource), 0, MakeObjectInstance(MtclDialogProc), 0);
   ShowWindow(FHandle, SW_SHOWNORMAL);
   // Remember the initial client size so the first resize produces a correct
   // delta even if no WM_SIZE was seen during creation.
@@ -396,6 +440,11 @@ end;
 constructor TMtclDialog.Create(const AResource: Integer);
 begin
   FDialogThread := TMtclDialogThread.Create(AResource);
+end;
+
+constructor TMtclDialog.CreateNew;
+begin
+  FDialogThread := TMtclDialogThread.CreateNew;
 end;
 
 destructor TMtclDialog.Destroy;

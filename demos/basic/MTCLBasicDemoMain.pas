@@ -94,7 +94,6 @@ implementation
 
 {$R *.dfm}
 {$R MTCLBasicDemoDialog.res}
-{$R MTCLComponentsDialog.res}
 
 { TExampleThread }
 
@@ -225,7 +224,8 @@ begin
   {$IFDEF Delphi2010up}
   TThread.NameThreadForDebugging('TComponentDemoThread');
   {$ENDIF}
-  FDialog := TMtclDialog.Create(1902);
+  // Created entirely in code - no dialog resource needed.
+  FDialog := TMtclDialog.CreateNew;
   try
     FDialog.Show;
     FDialog.Text := 'MTCL Komponenten';
