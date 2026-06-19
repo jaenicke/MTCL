@@ -22,7 +22,7 @@ uses
   Contnrs,
   {$ENDIF}
   {$ENDIF}
-  MTCL.BaseControl, MTCL.Button, MTCL.Memo;
+  MTCL.BaseElement, MTCL.BaseControl, MTCL.Button, MTCL.Memo;
 
 const
   cDialogStateInitialized = 1;
@@ -54,6 +54,7 @@ type
     destructor Destroy; override;
     procedure Show;
     procedure Hide;
+    procedure WaitForReady;
     {$IFDEF Delphi2010up}
     function Get<T: TMtclBaseControl>(const AControlID: Integer): T;
     function GetNew<T: TMtclBaseControl>: T;
@@ -64,18 +65,24 @@ type
     property Handle: HWND read FHandle write FHandle;
   end;
 
-  TMtclDialog = class
+  // The dialog window itself. Derives from TMtclBaseElement so its size and
+  // position can be changed through Left/Top/Width/Height/SetBounds. The actual
+  // window lives on the dialog thread; Handle is read from there and the bounds
+  // are read on first access (once the thread has created the window).
+  TMtclDialog = class(TMtclBaseElement)
   private
     FDialogThread: TMtclDialogThread;
-    function GetHandle: HWND;
-    procedure SetHandle(const Value: HWND);
+    FReady: Boolean;
+  protected
+    function GetHandle: HWND; override;
+    procedure SetHandle(const Value: HWND); override;
+    procedure EnsureReady; override;
   public
     constructor Create(const AResource: Integer);
     destructor Destroy; override;
     procedure Show;
     procedure Hide;
     procedure Close;
-    property Handle: HWND read GetHandle write SetHandle;
     {$IFDEF Delphi2010up}
     function Get<T: TMtclBaseControl>(const AControlID: Integer): T;
     function GetNew<T: TMtclBaseControl>: T;
@@ -313,6 +320,11 @@ begin
   ShowWindow(FHandle, SW_SHOWNORMAL);
 end;
 
+procedure TMtclDialogThread.WaitForReady;
+begin
+  WaitForSingleObject(FState, INFINITE);
+end;
+
 { TMtclDialog }
 
 procedure TMtclDialog.Close;
@@ -355,7 +367,10 @@ end;
 
 function TMtclDialog.GetHandle: HWND;
 begin
-  Result := FDialogThread.Handle;
+  if Assigned(FDialogThread) then
+    Result := FDialogThread.Handle
+  else
+    Result := 0;
 end;
 
 procedure TMtclDialog.Hide;
@@ -365,7 +380,21 @@ end;
 
 procedure TMtclDialog.SetHandle(const Value: HWND);
 begin
-  FDialogThread.Handle := Value;
+  if Assigned(FDialogThread) then
+    FDialogThread.Handle := Value;
+end;
+
+procedure TMtclDialog.EnsureReady;
+begin
+  // Wait until the dialog thread has actually created the window, then read its
+  // initial bounds once. After this the inherited Left/Top/Width/Height getters
+  // and SetBounds operate on the live dialog window.
+  if not FReady and Assigned(FDialogThread) then
+  begin
+    FDialogThread.WaitForReady;
+    InitBounds;
+    FReady := True;
+  end;
 end;
 
 procedure TMtclDialog.Show;

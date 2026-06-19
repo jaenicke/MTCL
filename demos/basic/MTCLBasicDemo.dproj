@@ -73,6 +73,7 @@
         <DCCReference Include="..\..\source\MTCL.Dialog.pas"/>
         <DCCReference Include="..\..\source\MTCL.Edit.pas"/>
         <DCCReference Include="..\..\source\MTCL.Memo.pas"/>
+        <DCCReference Include="..\..\source\MTCL.BaseElement.pas"/>
         <DCCReference Include="..\..\source\MTCL.BaseControl.pas"/>
         <DCCReference Include="..\..\source\MTCL.Button.pas"/>
         <DCCReference Include="..\..\source\MTCL.Progress.pas"/>
