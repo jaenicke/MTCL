@@ -24,7 +24,9 @@ uses
   {$ELSE}
   Contnrs,
   {$ENDIF}
-  MTCL.Dialog, MTCL.BaseControl, MTCL.Edit, MTCL.Button, MTCL.Progress;
+  MTCL.Dialog, MTCL.BaseControl, MTCL.Edit, MTCL.Button, MTCL.Progress,
+  MTCL.StaticText, MTCL.CheckBox, MTCL.RadioButton, MTCL.GroupBox,
+  MTCL.ComboBox, MTCL.ListBox;
 
 type
   TExampleThread = class(TThread)
@@ -40,21 +42,46 @@ type
     procedure Hide;
   end;
 
+  // Opens a separate dialog that demonstrates the additional components
+  // (label, check box, radio buttons, group box, combo box, list box). The
+  // dialog stays open and interactive until it is closed or the program ends.
+  TComponentDemoThread = class(TThread)
+  private
+    FDialog: TMtclDialog;
+    FStatus: TMtclLabel;
+    FCheck: TMtclCheckBox;
+    FRadioA: TMtclRadioButton;
+    FRadioB: TMtclRadioButton;
+    FCombo: TMtclComboBox;
+    FList: TMtclListBox;
+    procedure CheckClick(Sender: TObject);
+    procedure RadioClick(Sender: TObject);
+    procedure ComboChange(Sender: TObject);
+    procedure ListChange(Sender: TObject);
+    procedure CloseClick(Sender: TObject);
+  protected
+    procedure Execute; override;
+  end;
+
   TfrmMultithreadTestMain = class(TForm)
     btnNewThread: TButton;
     btnShowAllWindows: TButton;
     btnHideAllWindows: TButton;
     edtThreadText: TEdit;
+    btnComponents: TButton;
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
     procedure btnNewThreadClick(Sender: TObject);
     procedure btnHideAllWindowsClick(Sender: TObject);
     procedure btnShowAllWindowsClick(Sender: TObject);
+    procedure btnComponentsClick(Sender: TObject);
   private
     {$IFDEF Delphi2010up}
     FExampleThreads: TObjectList<TExampleThread>;
+    FComponentThreads: TObjectList<TComponentDemoThread>;
     {$ELSE}
     FExampleThreads: TObjectList;
+    FComponentThreads: TObjectList;
     {$ENDIF}
   public
     { Public-Deklarationen }
@@ -67,6 +94,7 @@ implementation
 
 {$R *.dfm}
 {$R MTCLBasicDemoDialog.res}
+{$R MTCLComponentsDialog.res}
 
 { TExampleThread }
 
@@ -154,6 +182,135 @@ begin
   FExampleThreadDialog.Show;
 end;
 
+{ TComponentDemoThread }
+
+procedure TComponentDemoThread.CheckClick(Sender: TObject);
+begin
+  if FCheck.Checked then
+    FStatus.Text := 'Status: Aktiviert ein'
+  else
+    FStatus.Text := 'Status: Aktiviert aus';
+end;
+
+procedure TComponentDemoThread.RadioClick(Sender: TObject);
+begin
+  if FRadioA.Checked then
+    FStatus.Text := 'Status: Option A'
+  else if FRadioB.Checked then
+    FStatus.Text := 'Status: Option B';
+end;
+
+procedure TComponentDemoThread.ComboChange(Sender: TObject);
+begin
+  FStatus.Text := 'ComboBox: ' + FCombo.SelText;
+end;
+
+procedure TComponentDemoThread.ListChange(Sender: TObject);
+begin
+  FStatus.Text := 'ListBox: ' + FList.SelText;
+end;
+
+procedure TComponentDemoThread.CloseClick(Sender: TObject);
+begin
+  Terminate;
+end;
+
+procedure TComponentDemoThread.Execute;
+var
+  Group: TMtclGroupBox;
+  ComboLabel, ListLabel: TMtclLabel;
+  CloseBtn: TMtclButton;
+  DlgHandle: HWND;
+begin
+  {$IFDEF Delphi2010up}
+  TThread.NameThreadForDebugging('TComponentDemoThread');
+  {$ENDIF}
+  FDialog := TMtclDialog.Create(1902);
+  try
+    FDialog.Show;
+    FDialog.Text := 'MTCL Komponenten';
+    FDialog.Width := 480;
+    FDialog.Height := 320;
+    {$IFDEF Delphi2010up}
+    Group := FDialog.GetNew<TMtclGroupBox>;
+    FCheck := FDialog.GetNew<TMtclCheckBox>;
+    FRadioA := FDialog.GetNew<TMtclRadioButton>;
+    FRadioB := FDialog.GetNew<TMtclRadioButton>;
+    ComboLabel := FDialog.GetNew<TMtclLabel>;
+    FCombo := FDialog.GetNew<TMtclComboBox>;
+    ListLabel := FDialog.GetNew<TMtclLabel>;
+    FList := FDialog.GetNew<TMtclListBox>;
+    FStatus := FDialog.GetNew<TMtclLabel>;
+    CloseBtn := FDialog.GetNew<TMtclButton>;
+    {$ELSE}
+    Group := FDialog.GetNew(TMtclGroupBox) as TMtclGroupBox;
+    FCheck := FDialog.GetNew(TMtclCheckBox) as TMtclCheckBox;
+    FRadioA := FDialog.GetNew(TMtclRadioButton) as TMtclRadioButton;
+    FRadioB := FDialog.GetNew(TMtclRadioButton) as TMtclRadioButton;
+    ComboLabel := FDialog.GetNew(TMtclLabel) as TMtclLabel;
+    FCombo := FDialog.GetNew(TMtclComboBox) as TMtclComboBox;
+    ListLabel := FDialog.GetNew(TMtclLabel) as TMtclLabel;
+    FList := FDialog.GetNew(TMtclListBox) as TMtclListBox;
+    FStatus := FDialog.GetNew(TMtclLabel) as TMtclLabel;
+    CloseBtn := FDialog.GetNew(TMtclButton) as TMtclButton;
+    {$ENDIF}
+
+    // Group box created first so it stays behind the controls it surrounds.
+    Group.Text := 'Optionen';
+    Group.SetBounds(12, 8, 210, 110);
+    FCheck.Text := 'Aktiviert';
+    FCheck.SetBounds(24, 28, 180, 20);
+    FCheck.OnClick := CheckClick;
+    FRadioA.Text := 'Option A';
+    FRadioA.SetBounds(24, 52, 180, 20);
+    FRadioA.OnClick := RadioClick;
+    FRadioB.Text := 'Option B';
+    FRadioB.SetBounds(24, 76, 180, 20);
+    FRadioB.OnClick := RadioClick;
+
+    ComboLabel.Text := 'ComboBox:';
+    ComboLabel.SetBounds(240, 10, 200, 16);
+    ComboLabel.Anchors := [maTop, maRight];
+    FCombo.SetBounds(240, 28, 210, 140);
+    FCombo.Anchors := [maTop, maRight];
+    FCombo.Add('Eins');
+    FCombo.Add('Zwei');
+    FCombo.Add('Drei');
+    FCombo.Add('Vier');
+    FCombo.ItemIndex := 0;
+    FCombo.OnChange := ComboChange;
+
+    ListLabel.Text := 'ListBox:';
+    ListLabel.SetBounds(240, 58, 200, 16);
+    ListLabel.Anchors := [maTop, maRight];
+    FList.SetBounds(240, 76, 210, 150);
+    FList.Anchors := [maTop, maRight, maBottom];
+    FList.Add('Alpha');
+    FList.Add('Beta');
+    FList.Add('Gamma');
+    FList.Add('Delta');
+    FList.Add('Epsilon');
+    FList.OnChange := ListChange;
+
+    FStatus.Text := 'Status: -';
+    FStatus.SetBounds(12, 250, 250, 20);
+    FStatus.Anchors := [maLeft, maBottom];
+
+    CloseBtn.Text := 'Schliessen';
+    CloseBtn.SetBounds(372, 246, 84, 26);
+    CloseBtn.Anchors := [maRight, maBottom];
+    CloseBtn.OnClick := CloseClick;
+
+    // Idle until the thread is terminated (Schliessen button or program end) or
+    // the dialog window is closed via its system menu.
+    DlgHandle := FDialog.Handle;
+    while not Terminated and IsWindow(DlgHandle) do
+      Sleep(50);
+  finally
+    FDialog.Free;
+  end;
+end;
+
 procedure TfrmMultithreadTestMain.btnHideAllWindowsClick(Sender: TObject);
 var
   i: Integer;
@@ -174,6 +331,14 @@ begin
   FExampleThreads.Add(NewThread);
 end;
 
+procedure TfrmMultithreadTestMain.btnComponentsClick(Sender: TObject);
+var
+  NewThread: TComponentDemoThread;
+begin
+  NewThread := TComponentDemoThread.Create(False);
+  FComponentThreads.Add(NewThread);
+end;
+
 procedure TfrmMultithreadTestMain.btnShowAllWindowsClick(Sender: TObject);
 var
   i: Integer;
@@ -190,13 +355,16 @@ procedure TfrmMultithreadTestMain.FormCreate(Sender: TObject);
 begin
   {$IFDEF Delphi2010up}
   FExampleThreads := TObjectList<TExampleThread>.Create(True);
+  FComponentThreads := TObjectList<TComponentDemoThread>.Create(True);
   {$ELSE}
   FExampleThreads := TObjectList.Create(True);
+  FComponentThreads := TObjectList.Create(True);
   {$ENDIF}
 end;
 
 procedure TfrmMultithreadTestMain.FormDestroy(Sender: TObject);
 begin
+  FComponentThreads.Free;
   FExampleThreads.Free;
 end;
 

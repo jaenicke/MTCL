@@ -50,4 +50,13 @@ object frmMultithreadTestMain: TfrmMultithreadTestMain
     TabOrder = 3
     Text = 'abc123'
   end
+  object btnComponents: TButton
+    Left = 8
+    Top = 70
+    Width = 169
+    Height = 25
+    Caption = 'Komponenten-Demo'
+    TabOrder = 4
+    OnClick = btnComponentsClick
+  end
 end

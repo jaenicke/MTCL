@@ -77,6 +77,12 @@
         <DCCReference Include="..\..\source\MTCL.BaseControl.pas"/>
         <DCCReference Include="..\..\source\MTCL.Button.pas"/>
         <DCCReference Include="..\..\source\MTCL.Progress.pas"/>
+        <DCCReference Include="..\..\source\MTCL.StaticText.pas"/>
+        <DCCReference Include="..\..\source\MTCL.CheckBox.pas"/>
+        <DCCReference Include="..\..\source\MTCL.RadioButton.pas"/>
+        <DCCReference Include="..\..\source\MTCL.GroupBox.pas"/>
+        <DCCReference Include="..\..\source\MTCL.ComboBox.pas"/>
+        <DCCReference Include="..\..\source\MTCL.ListBox.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>
