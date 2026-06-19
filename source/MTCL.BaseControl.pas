@@ -15,7 +15,7 @@ uses
   {$IFDEF DelphiXE2up}
   System.Classes, Winapi.Windows, Winapi.Messages, Vcl.Graphics;
   {$ELSE}
-  Classes, Windows, Messages;
+  Classes, Windows, Messages, Graphics;
   {$ENDIF}
 
 type
@@ -71,6 +71,15 @@ type
 implementation
 
 uses Types;
+
+{$IFNDEF Delphi2009up}
+type
+  // NativeInt was introduced in Delphi 2009. Alias it to Integer for older
+  // compilers (e.g. Delphi 7) so the pointer<->ordinal casts below still
+  // compile there. On Win32 (the only target for those versions) a pointer
+  // fits into an Integer, so this is exact.
+  NativeInt = Integer;
+{$ENDIF}
 
 { TMtclBaseControl }
 
