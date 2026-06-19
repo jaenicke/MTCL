@@ -24,7 +24,7 @@ uses
   {$ELSE}
   Contnrs,
   {$ENDIF}
-  MTCL.Dialog, MTCL.Edit, MTCL.Button, MTCL.Progress;
+  MTCL.Dialog, MTCL.BaseControl, MTCL.Edit, MTCL.Button, MTCL.Progress;
 
 type
   TExampleThread = class(TThread)
@@ -114,6 +114,15 @@ begin
     ProgressBar.Max := 15;
     ProgressLeft := 2 * SecondButton.Left + SecondButton.Width;
     ProgressBar.SetBounds(ProgressLeft, SecondButton.Top, ResButton.Left - ProgressLeft - SecondButton.Left, SecondButton.Height);
+    // Anchors: the edit fills the dialog, the buttons stay in their bottom
+    // corners and the progress bar stretches along the bottom. Resize the dialog
+    // (drag its border or the line below) and the controls reflow accordingly.
+    ExampleControl.Anchors := [maLeft, maTop, maRight, maBottom];
+    SecondButton.Anchors := [maLeft, maBottom];
+    ProgressBar.Anchors := [maLeft, maRight, maBottom];
+    ResButton.Anchors := [maRight, maBottom];
+    FExampleThreadDialog.Width := FExampleThreadDialog.Width + 200;
+    FExampleThreadDialog.Height := FExampleThreadDialog.Height + 120;
     for i := 1 to 15 do
     begin
       ExampleControl.Font.Height := 13 + Random(10);

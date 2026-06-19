@@ -43,10 +43,14 @@ type
     {$ENDIF}
     FState: Integer;
     FLastControlID: Integer;
+    FLastClientW: Integer;
+    FLastClientH: Integer;
+    FClientSizeKnown: Boolean;
     procedure AddControl(const AHandle: HWND);
     procedure MtclDialogProc(var AMessage: TMessage);
     function GetNewControlID: Integer;
     function CreateControlOnThread(const AClass: TMtclBaseControlClass): TMtclBaseControl;
+    procedure ApplyAnchors(const ADeltaW, ADeltaH: Integer);
   protected
     procedure Execute; override;
   public
@@ -173,12 +177,21 @@ procedure TMtclDialogThread.Execute;
 var
   CurrentMessage: TMsg;
   DummyHandle: THandle;
+  ClientRect: TRect;
 begin
   {$IFDEF Delphi2010up}
   TThread.NameThreadForDebugging('TMtclDialogThread ' + IntToStr(FResource));
   {$ENDIF}
   FHandle := CreateDialogParam(hInstance, MAKEINTRESOURCE(FResource), 0, MakeObjectInstance(MtclDialogProc), 0);
   ShowWindow(FHandle, SW_SHOWNORMAL);
+  // Remember the initial client size so the first resize produces a correct
+  // delta even if no WM_SIZE was seen during creation.
+  if GetClientRect(FHandle, ClientRect) then
+  begin
+    FLastClientW := ClientRect.Right;
+    FLastClientH := ClientRect.Bottom;
+    FClientSizeKnown := True;
+  end;
   EnumChildWindows(FHandle, @EnumWindowsProc, Integer(Self));
   InvalidateRect(FHandle, nil, True);
   SetEvent(FState);
@@ -264,6 +277,44 @@ begin
   Result := Request.Control;
 end;
 
+procedure TMtclDialogThread.ApplyAnchors(const ADeltaW, ADeltaH: Integer);
+var
+  i: Integer;
+  Control: TMtclBaseControl;
+  Anchors: TMtclAnchors;
+  NewLeft, NewTop, NewWidth, NewHeight: Integer;
+begin
+  if (ADeltaW = 0) and (ADeltaH = 0) then
+    Exit;
+  for i := 0 to FControls.Count - 1 do
+  begin
+    Control := TMtclBaseControl(FControls[i]);
+    Anchors := Control.Anchors;
+    NewLeft := Control.Left;
+    NewTop := Control.Top;
+    NewWidth := Control.Width;
+    NewHeight := Control.Height;
+    // Horizontal: both edges anchored -> stretch; only right -> move; only left
+    // (the default) -> keep; neither -> keep centered.
+    if (maLeft in Anchors) and (maRight in Anchors) then
+      Inc(NewWidth, ADeltaW)
+    else if maRight in Anchors then
+      Inc(NewLeft, ADeltaW)
+    else if not (maLeft in Anchors) then
+      Inc(NewLeft, ADeltaW div 2);
+    // Vertical: analogous with top/bottom.
+    if (maTop in Anchors) and (maBottom in Anchors) then
+      Inc(NewHeight, ADeltaH)
+    else if maBottom in Anchors then
+      Inc(NewTop, ADeltaH)
+    else if not (maTop in Anchors) then
+      Inc(NewTop, ADeltaH div 2);
+    if (NewLeft <> Control.Left) or (NewTop <> Control.Top) or
+       (NewWidth <> Control.Width) or (NewHeight <> Control.Height) then
+      Control.SetBounds(NewLeft, NewTop, NewWidth, NewHeight);
+  end;
+end;
+
 function TMtclDialogThread.GetNewControlID: Integer;
 begin
   Inc(FLastControlID);
@@ -283,6 +334,16 @@ begin
   case AMessage.Msg of
     WM_CLOSE:
       DestroyWindow(FHandle);
+    WM_SIZE:
+      begin
+        // Reflow anchored child controls by the change of the client size.
+        if FClientSizeKnown then
+          ApplyAnchors(AMessage.LParamLo - FLastClientW, AMessage.LParamHi - FLastClientH);
+        FLastClientW := AMessage.LParamLo;
+        FLastClientH := AMessage.LParamHi;
+        FClientSizeKnown := True;
+        DefaultHandler(AMessage);
+      end;
     WM_MTCL_CREATECONTROL:
       begin
         // Runs on the dialog thread (sent here from GetNew via SendMessage), so

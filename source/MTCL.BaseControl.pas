@@ -20,15 +20,27 @@ uses
   MTCL.BaseElement;
 
 type
+  // Which edges of the control are tied to the corresponding edges of the parent
+  // dialog. When the dialog is resized, an anchored edge keeps its distance to
+  // that parent edge (analogous to VCL anchors). Own identifiers (ma...) are used
+  // instead of VCL's ak... so both can be referenced in the same unit.
+  TMtclAnchorKind = (maLeft, maTop, maRight, maBottom);
+  TMtclAnchors = set of TMtclAnchorKind;
+
+const
+  cDefaultAnchors = [maLeft, maTop];
+
+type
   // A child control living inside a dialog. Position/size/visibility/text come
   // from TMtclBaseElement; this class adds the parent dialog, the dialog item
-  // id, the subclassed window procedure and the font.
+  // id, the subclassed window procedure, the font and the anchors.
   TMtclBaseControl = class(TMtclBaseElement)
   private
     FDialog: HWND;
     FOriginalWndProc: Pointer;
     FDialogItem: Integer;
     FFont: TFont;
+    FAnchors: TMtclAnchors;
   protected
     procedure Init; virtual;
     procedure WndProc(var AMsg: TMessage); virtual;
@@ -42,6 +54,7 @@ type
     property Dialog: HWND read FDialog write FDialog;
     property DialogItem: Integer read FDialogItem write FDialogItem;
     property Font: TFont read FFont;
+    property Anchors: TMtclAnchors read FAnchors write FAnchors;
   end;
 
 implementation
@@ -61,6 +74,7 @@ constructor TMtclBaseControl.Create(const ADialog, AControl: HWND; const ADialog
 begin
   FFont := TFont.Create;
   FFont.OnChange := FontChanged;
+  FAnchors := cDefaultAnchors;
   FDialog := ADialog;
   FHandle := AControl;
   FDialogItem := ADialogItem;
@@ -73,6 +87,7 @@ constructor TMtclBaseControl.Create(const ADialog: HWND; const ADialogItem: Inte
 begin
   FFont := TFont.Create;
   FFont.OnChange := FontChanged;
+  FAnchors := cDefaultAnchors;
   FDialog := ADialog;
   FDialogItem := ADialogItem;
   Init;
