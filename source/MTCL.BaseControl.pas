@@ -41,6 +41,7 @@ type
     FDialogItem: Integer;
     FFont: TFont;
     FAnchors: TMtclAnchors;
+    FDeferShow: Boolean;
   protected
     procedure Init; virtual;
     procedure WndProc(var AMsg: TMessage); virtual;
@@ -50,6 +51,7 @@ type
     constructor Create(const ADialog, AControl: HWND; const ADialogItem: Integer); overload; virtual;
     constructor Create(const ADialog: HWND; const ADialogItem: Integer); overload; virtual;
     destructor Destroy; override;
+    procedure SetBounds(const ALeft, ATop, AWidth, AHeight: Integer); override;
 
     property Dialog: HWND read FDialog write FDialog;
     property DialogItem: Integer read FDialogItem write FDialogItem;
@@ -106,11 +108,33 @@ end;
 
 procedure TMtclBaseControl.Init;
 begin
-  Visible := True;
   InitBounds;
+  if (FWidth <= 0) or (FHeight <= 0) then
+  begin
+    // A freshly created control (via GetNew) starts at 0,0 with no size. Keep it
+    // hidden until it is given a real position by SetBounds, otherwise it would
+    // briefly paint at the top-left corner before being moved.
+    ShowWindow(Handle, SW_HIDE);
+    FVisible := False;
+    FDeferShow := True;
+  end
+  else
+    // An existing control (wrapped from the dialog resource) is already shown.
+    FVisible := IsWindowVisible(Handle);
   FFont.Handle := CreateFont(13, 0, 0, 0, FW_DONTCARE, 0, 0, 0, ANSI_CHARSET,
       OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
       DEFAULT_PITCH or FF_DONTCARE, 'Tahoma');
+end;
+
+procedure TMtclBaseControl.SetBounds(const ALeft, ATop, AWidth, AHeight: Integer);
+begin
+  inherited SetBounds(ALeft, ATop, AWidth, AHeight);
+  if FDeferShow then
+  begin
+    // First real positioning: now it is safe to show the control.
+    FDeferShow := False;
+    Visible := True;
+  end;
 end;
 
 procedure TMtclBaseControl.InitBounds;
@@ -137,11 +161,15 @@ end;
 
 procedure TMtclBaseControl.WndProc(var AMsg: TMessage);
 begin
+  // Note: WM_COMMAND is NOT handled here. Notifications a control sends about
+  // itself go to the parent dialog (handled in MtclDialogProc, which dispatches
+  // to the control's message methods). A composite control such as a combo box,
+  // on the other hand, receives WM_COMMAND from its own internal list box and
+  // must process it (e.g. to close the drop-down on selection), so it has to be
+  // forwarded to the original window procedure.
   case AMsg.Msg of
     WM_CLOSE:
       DestroyWindow(Handle);
-    WM_COMMAND:
-      Dispatch(AMsg);
   else
     AMsg.Result := CallWindowProc(FOriginalWndProc, Handle, AMsg.Msg, AMsg.WParam, AMsg.LParam);
   end;
