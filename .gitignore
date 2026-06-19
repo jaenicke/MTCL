@@ -1,0 +1,47 @@
+# Delphi / RAD Studio build artifacts and IDE files
+# Note: *.res is intentionally NOT ignored - the project resource and the
+# dialog template (MTCLBasicDemoDialog.res) are source and must stay tracked.
+
+# Compiler output
+*.dcu
+*.o
+*.a
+*.obj
+*.dcp
+*.bpl
+*.dphl
+*.drc
+*.map
+*.rsm
+*.dbg
+*.tds
+
+# Compiled binaries
+*.exe
+*.dll
+
+# IDE / project local state (not source)
+*.local
+*.identcache
+*.tvsconfig
+*.skincfg
+*.dsk
+*.~dsk
+*.stat
+*.delphilsp.json
+*.~*
+
+# IDE history / recovery
+__history/
+__recovery/
+
+# Default platform/config output folders
+Win32/
+Win64/
+OSX64/
+OSXARM64/
+Android/
+Android64/
+iOSDevice64/
+iOSSimulator/
+Linux64/
